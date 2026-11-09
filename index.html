@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Dwandva: a browser-based two-player duel game.">
+<title>Dwandva Fighting Game</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="720" aria-label="Game arena"></canvas>
+
+  <!-- 1. TITLE -->
+  <section id="scr-title" class="screen" aria-label="Main menu">
+    <div class="veil"></div>
+    <div class="brand">
+      <div class="native" lang="hi" id="native-title">द्वंद्व</div>
+      <h1 class="logo" id="logo">DWANDVA</h1>
+      <p class="tagline" id="tagline">Two fighters. One arena. Best of three rounds.</p>
+    </div>
+    <nav class="menu" id="title-menu" aria-label="Main menu"></nav>
+    <div class="title-foot"><span id="roster-count">Roster 2 / 8</span><i></i><span id="arena-count">3 arenas</span><i></i><span id="build">Build 0.1</span></div>
+    <div class="hint title-hint"><span><kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>Enter</kbd> select</span></div>
+    <p class="touch-note">Best played with a keyboard.</p>
+  </section>
+
+  <!-- 2. CONTROLS -->
+  <section id="scr-controls" class="screen" aria-label="Controls">
+    <div class="veil dark"></div>
+    <header class="page-head"><div class="eyebrow">How to play</div><h2>Controls</h2></header>
+    <button class="back-btn" id="ctl-back" type="button">Back</button>
+    <div class="ctl-card p1">
+      <h3>Player 1</h3>
+      <div class="ctl-row">
+        <div class="cluster"><kbd class="k-up">W</kbd><kbd class="k-l">A</kbd><kbd class="k-d">S</kbd><kbd class="k-r">D</kbd></div>
+        <ul class="acts">
+          <li><kbd>F</kbd><span class="what">Punch</span></li>
+          <li><kbd>G</kbd><span class="what">Kick</span></li>
+          <li><kbd>H</kbd><span class="what">Special</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ctl-card p2">
+      <h3>Player 2</h3>
+      <div class="ctl-row">
+        <div class="cluster"><kbd class="k-up">↑</kbd><kbd class="k-l">←</kbd><kbd class="k-d">↓</kbd><kbd class="k-r">→</kbd></div>
+        <ul class="acts">
+          <li><kbd>1</kbd><span class="or">or</span><kbd>,</kbd><span class="what">Punch</span></li>
+          <li><kbd>2</kbd><span class="or">or</span><kbd>.</kbd><span class="what">Kick</span></li>
+          <li><kbd>3</kbd><span class="or">or</span><kbd>/</kbd><span class="what">Special</span></li>
+        </ul>
+      </div>
+    </div>
+    <dl class="moves">
+      <div><dt>Block</dt><dd>Hold away from your opponent</dd></div>
+      <div><dt>Low attacks</dt><dd>Crouch, then punch or kick</dd></div>
+      <div><dt>Air attacks</dt><dd>Jump, then punch or kick</dd></div>
+      <div><dt>Special</dt><dd>Costs one Shakti bar. Bars fill as you hit and get hit.</dd></div>
+      <div><dt>Pause</dt><dd><kbd>Esc</kbd> or <kbd>P</kbd> pauses · <kbd>M</kbd> mutes</dd></div>
+      <div><dt>Training</dt><dd><kbd>`</kbd> shows hitboxes</dd></div>
+    </dl>
+    <p class="ctl-note">In VS CPU and Training, Player 1 can use either key set. Number keys 1–3 work on the numpad.</p>
+    <div class="hint page-hint"><span><kbd>Esc</kbd> back</span></div>
+  </section>
+
+  <!-- 3. CHARACTER SELECT -->
+  <section id="scr-select" class="screen" aria-label="Choose fighters">
+    <header class="sel-head"><div class="eyebrow">Step 1 of 2 · Choose</div><h2>Fighters</h2><div class="chip" id="sel-mode">VS CPU</div></header>
+    <div class="pick-panel" id="pp0"></div>
+    <div class="roster" id="roster"></div>
+    <p class="roster-note" id="roster-note"></p>
+    <div class="pick-panel right" id="pp1"></div>
+    <div class="hint sel-hint" id="sel-hint"></div>
+  </section>
+
+  <!-- 4. STAGE SELECT -->
+  <section id="scr-stage" class="screen" aria-label="Choose arena">
+    <div class="stage-veil"></div>
+    <header class="stage-head"><div class="eyebrow">Step 2 of 2 · Arena</div><h2 id="stage-name">Akhada</h2><p id="stage-sub"></p></header>
+    <div class="stage-cards" id="stage-cards"></div>
+    <div class="hint stage-hint"><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> browse</span><span><kbd>Enter</kbd> fight</span><span><kbd>Esc</kbd> back</span></div>
+  </section>
+
+  <!-- 5. VERSUS SPLASH -->
+  <section id="scr-vs" class="screen" aria-label="Versus">
+    <div class="vs-stage eyebrow" id="vs-stage"></div>
+    <div class="vs-mark">VS</div>
+    <div class="vs-name n1" id="vs-n1"></div>
+    <div class="vs-name n2" id="vs-n2"></div>
+    <div class="vs-sub s1" id="vs-s1"></div>
+    <div class="vs-sub s2" id="vs-s2"></div>
+    <div class="hint vs-hint"><span><kbd>Enter</kbd> skip</span></div>
+  </section>
+
+  <!-- 6. FIGHT HUD -->
+  <section id="scr-fight" class="screen" aria-label="Fight">
+    <div class="hud">
+      <div class="hud-side s1">
+        <div class="portrait"><canvas width="144" height="144"></canvas></div>
+        <div class="hud-bars">
+          <div class="hp"><i class="trail"></i><i class="fill"></i></div>
+          <div class="hud-meta"><span class="hud-name"></span><span class="pips"></span></div>
+        </div>
+      </div>
+      <div class="clock"><b id="clock">99</b><span id="round-label">Round 1</span></div>
+      <div class="hud-side s2">
+        <div class="portrait"><canvas width="144" height="144"></canvas></div>
+        <div class="hud-bars">
+          <div class="hp"><i class="trail"></i><i class="fill"></i></div>
+          <div class="hud-meta"><span class="hud-name"></span><span class="pips"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="shakti s1"><span class="lbl">Shakti</span><div class="seg"><i></i></div><div class="seg"><i></i></div></div>
+    <div class="shakti s2"><span class="lbl">Shakti</span><div class="seg"><i></i></div><div class="seg"><i></i></div></div>
+    <div class="combo s1"><b>2</b><span>Hit combo</span></div>
+    <div class="combo s2"><b>2</b><span>Hit combo</span></div>
+    <div class="announce" id="announce"></div>
+    <div class="train-readout" id="train-readout"></div>
+    <div class="fight-hint">Esc pause<span class="tr"> · ` hitboxes</span></div>
+  </section>
+
+  <!-- 7. PAUSE (sits over the fight) -->
+  <section id="scr-pause" class="screen" aria-label="Paused">
+    <div class="pause-veil"></div>
+    <div class="pause-left"><div class="eyebrow" id="pause-mode">VS CPU</div><h2>Paused</h2><nav class="menu" id="pause-menu" aria-label="Pause menu"></nav></div>
+    <div class="pause-card">
+      <h3>Controls</h3>
+      <table class="ref">
+        <thead><tr><th>Action</th><th>Player 1</th><th>Player 2</th></tr></thead>
+        <tbody>
+          <tr><td>Move</td><td><kbd>A</kbd><kbd>D</kbd></td><td><kbd>←</kbd><kbd>→</kbd></td></tr>
+          <tr><td>Jump · Crouch</td><td><kbd>W</kbd><kbd>S</kbd></td><td><kbd>↑</kbd><kbd>↓</kbd></td></tr>
+          <tr><td>Punch</td><td><kbd>F</kbd></td><td><kbd>1</kbd> or <kbd>,</kbd></td></tr>
+          <tr><td>Kick</td><td><kbd>G</kbd></td><td><kbd>2</kbd> or <kbd>.</kbd></td></tr>
+          <tr><td>Special</td><td><kbd>H</kbd></td><td><kbd>3</kbd> or <kbd>/</kbd></td></tr>
+          <tr><td>Block</td><td colspan="2">Hold away from your opponent</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 8. RESULTS -->
+  <section id="scr-results" class="screen" aria-label="Match result">
+    <div class="res-panel">
+      <div class="eyebrow">Match result</div>
+      <h2 id="res-title"></h2>
+      <p id="res-sub"></p>
+      <table class="res-table"><thead><tr><th></th><th id="res-h1"></th><th id="res-h2"></th></tr></thead><tbody id="res-body"></tbody></table>
+      <nav class="menu row" id="res-menu" aria-label="Next step"></nav>
+    </div>
+  </section>
+
+  <div class="corner"><button id="btn-mute" type="button" aria-pressed="false">Sound on</button><button id="btn-full" type="button">Full screen</button></div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
