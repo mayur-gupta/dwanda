@@ -16,6 +16,7 @@ screens.title = {
     $('#arena-count').textContent = `${STAGES.length} arenas`;
     $('#build').textContent = `Build ${GAME.build}`;
     this.menu = new Menu($('#title-menu'), [
+      { label: 'Story', sub: "Nayan's life", run: () => go('map') },
       { label: 'VS CPU', sub: '1 player', run: () => startSelect('cpu') },
       { label: '2 Players', sub: 'Same keyboard', run: () => startSelect('versus') },
       { label: 'Training', sub: 'Practise moves', run: () => startSelect('training') },

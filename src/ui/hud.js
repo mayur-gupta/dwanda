@@ -1,5 +1,4 @@
 // Fight HUD: health bars, timer, round lamps, Shakti meter, combo counter, announcer.
-import { ROUNDS_TO_WIN } from '../config.js';
 import { $, $$, clamp } from '../engine/utils.js';
 import { drawBust } from '../engine/draw.js';
 
@@ -25,11 +24,12 @@ export const HUD = {
       for (const el of [h.root, h.meter, h.combo]) el.style.setProperty('--rim', f.pal.rim);
       h.name.textContent = f.ch.name;
       drawBust(h.cv, f.ch, f.pal, i === 1);
-      h.pips.innerHTML = Array.from({ length: ROUNDS_TO_WIN }, () => `<span class="pip">${DIYA}</span>`).join('');
+      h.pips.innerHTML = Array.from({ length: M.roundsToWin }, () => `<span class="pip">${DIYA}</span>`).join('');
       h._r = h._tr = h._m = h._w = h._c = undefined;
       h.combo.classList.remove('on');
     });
     this.root.classList.toggle('training', M.mode === 'training');
+    this.root.classList.toggle('hinted', M.mode === 'training' || M.rule === 'stillness');
     this._time = this._rl = this._tx = undefined;
     this.hideAnnounce();
     this.sync(M);
@@ -60,11 +60,13 @@ export const HUD = {
     const train = M.mode === 'training';
     const tm = train ? '∞' : String(Math.max(0, M.time));
     if (this._time !== tm) { this.clock.textContent = tm; this.clock.parentElement.classList.toggle('hurry', !train && M.time <= 10); this._time = tm; }
-    const rl = train ? 'Training' : `Round ${M.round}`;
+    const rl = train ? 'Training' : M.chapter ? `Age ${M.chapter.age}` : `Round ${M.round}`;
     if (this._rl !== rl) { this.roundLbl.textContent = rl; this._rl = rl; }
-    if (train) {
+    if (train || M.rule === 'stillness') {
       const lc = M.lastCombo[0];
-      const tx = lc.hits ? `Last combo · ${lc.hits} hit${lc.hits > 1 ? 's' : ''} · ${lc.damage} damage` : 'Hit the dummy to see combo damage';
+      const tx = M.rule === 'stillness'
+        ? `Stand still near Shanta · calm ${Math.round(M.calm / 3)}%`
+        : lc.hits ? `Last combo · ${lc.hits} hit${lc.hits > 1 ? 's' : ''} · ${lc.damage} damage` : 'Hit the dummy to see combo damage';
       if (this._tx !== tx) { this.train.textContent = tx; this._tx = tx; }
     }
   },

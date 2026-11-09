@@ -4,13 +4,14 @@ export const GAME = {
   title: 'DWANDVA',
   native: 'द्वंद्व',
   tagline: 'Two fighters. One arena. Best of three rounds.',
-  build: '0.2',
+  build: '0.3',
 };
 
 export const VIEW_W = 1280;
 export const VIEW_H = 720;
 
-export const ROSTER_SIZE = 8;     // slots on the select screen
+export const ROSTER_SIZE = 10;    // slots on the select screen
+export const ROSTER_COLS = 5;     // slots per row
 export const ROUNDS_TO_WIN = 2;   // best of 3
 export const ROUND_TIME = 99;     // seconds per round
 export const GRAVITY = 0.85;

@@ -1,7 +1,8 @@
 // A match: rounds, timer, hit detection, projectiles, KO and results.
 import { VIEW_W, VIEW_H, ROUNDS_TO_WIN, ROUND_TIME, STAGE_LEFT, STAGE_RIGHT } from '../config.js';
-import { CHARACTERS, palFor } from '../characters/index.js';
-import { STAGES, drawStage } from '../stages/index.js';
+import { CHARACTERS, palFor, byId } from '../characters/index.js';
+import { nayanAt } from '../characters/nayan.js';
+import { STAGES, drawStage, stageIndex } from '../stages/index.js';
 import { G, S } from '../state.js';
 import { TAU, clamp, circleRect, REDUCED } from './utils.js';
 import { readPlayer, blankInput } from './input.js';
@@ -13,18 +14,25 @@ import { sfx } from './audio.js';
 import { HUD } from '../ui/hud.js';
 import { go } from '../ui/router.js';
 
+export const CALM_MAX = 300;   // ticks of stillness needed in chapter 9 (5 seconds)
+
 export class Match {
   constructor(cfg) {
-    this.mode = cfg.mode;
-    this.picks = cfg.picks.slice();
-    this.stage = STAGES[cfg.stage];
+    this.mode = cfg.mode;                       // 'cpu' | 'versus' | 'training' | 'story'
+    this.chapter = cfg.chapter || null;         // story chapter data
+    this.rule = cfg.rule || null;               // 'stillness' = chapter 9
+    this.picks = (cfg.picks || [0, 1]).slice();
+    this.stage = STAGES[cfg.stage] || STAGES[0];
     this.cpuLevel = cfg.cpuLevel;
-    this.chars = [CHARACTERS[this.picks[0]], CHARACTERS[this.picks[1]]];
-    this.pals = [palFor(0, this.picks), palFor(1, this.picks)];
+    this.roundsToWin = cfg.roundsToWin || ROUNDS_TO_WIN;
+    this.roundTime = cfg.time || ROUND_TIME;
+    this.chars = cfg.chars || [CHARACTERS[this.picks[0]], CHARACTERS[this.picks[1]]];
+    this.pals = cfg.pals || [palFor(0, this.picks), palFor(1, this.picks)];
+    this.calm = 0;
     this.wins = [0, 0]; this.round = 1; this.perfects = [0, 0]; this.meters = [0, 0]; this.winner = null;
     this.stats = [0, 1].map(() => ({ damage: 0, hits: 0, bestCombo: 0, specials: 0, blocked: 0 }));
     this.lastCombo = [{ hits: 0, damage: 0 }, { hits: 0, damage: 0 }];
-    this.cpu = this.mode === 'cpu' ? new CPU(this.cpuLevel) : null;
+    this.cpu = (this.mode === 'cpu' || this.mode === 'story') ? new CPU(this.cpuLevel, { passive: this.rule === 'stillness' }) : null;
     this.startRound();
   }
 
@@ -33,7 +41,7 @@ export class Match {
     this.f = [new Fighter(this.chars[0], this.pals[0], 0, 440, g), new Fighter(this.chars[1], this.pals[1], 1, 840, g)];
     this.f[0].meter = this.meters[0]; this.f[1].meter = this.meters[1];
     this.projectiles = []; FX.clear();
-    this.time = ROUND_TIME; this.tick60 = 0; this.phase = 'intro'; this.phaseT = 0; this.controls = false;
+    this.time = this.roundTime; this.tick60 = 0; this.calm = 0; this.phase = 'intro'; this.phaseT = 0; this.controls = false;
     this.hitstop = 0; this.shakeMag = 0; this.slowmo = 0; this.annT = 0;
     this.roundWinner = null; this.flashT = 0; this.perfectRound = false;
     HUD.setup(this);
@@ -41,7 +49,8 @@ export class Match {
 
   roundLabel() {
     if (this.mode === 'training') return 'TRAINING';
-    const final = this.wins[0] === ROUNDS_TO_WIN - 1 && this.wins[1] === ROUNDS_TO_WIN - 1;
+    if (this.chapter) return this.chapter.rasa.toUpperCase();
+    const final = this.wins[0] === this.roundsToWin - 1 && this.wins[1] === this.roundsToWin - 1;
     return final ? 'FINAL ROUND' : 'ROUND ' + this.round;
   }
 
@@ -52,7 +61,7 @@ export class Match {
     if (!this.controls) return blankInput();
     if (side === 0) return readPlayer('p1', this.mode !== 'versus');   // solo modes accept both key sets
     if (this.mode === 'versus') return readPlayer('p2', false);
-    if (this.mode === 'cpu') return this.cpu.input(this.f[1], this.f[0], this);
+    if (this.cpu) return this.cpu.input(this.f[1], this.f[0], this);
     return blankInput();                                                // training dummy stands still
   }
 
@@ -64,7 +73,7 @@ export class Match {
 
     if (this.phase === 'intro') {
       if (this.phaseT === 1) this.announce(this.roundLabel(), 'round', train ? 48 : 70);
-      if (this.phaseT === (train ? 48 : 72)) { this.announce(train ? 'GO' : 'FIGHT!', 'fight', 40); sfx('gong'); }
+      if (this.phaseT === (train ? 48 : 72)) { this.announce(train ? 'GO' : this.rule === 'stillness' ? 'BE STILL' : 'FIGHT!', 'fight', 40); sfx('gong'); }
       if (this.phaseT === (train ? 66 : 100)) { this.phase = 'fight'; this.controls = true; }
     } else if (this.phase === 'fight') {
       if (!train && ++this.tick60 >= 60) {
@@ -72,7 +81,7 @@ export class Match {
         if (this.time <= 10 && this.time > 0) sfx('tick');
         if (this.time <= 0) this.timeUp();
       }
-    } else if (this.phase === 'ko' || this.phase === 'timeup') {
+    } else if (this.phase === 'ko' || this.phase === 'timeup' || this.phase === 'calm') {
       if (this.phaseT === 110) this.awardRound();
       if (this.phaseT === 210) { this.endRound(); return; }
     }
@@ -92,6 +101,7 @@ export class Match {
       this.checkHit(this.f[1], this.f[0]);
       this.updateProjectiles();
       if (train) this.trainingTick();
+      if (this.rule === 'stillness' && this.phase === 'fight') this.stillnessTick();
     }
 
     for (const fi of this.f) {
@@ -159,6 +169,10 @@ export class Match {
   }
 
   applyHit(att, def, m, hx, hy, dir) {
+    if (this.rule === 'stillness' && def.side === 1) {   // Peace cannot be hurt
+      def.blockstun = 8; this.hitstop = 3; FX.spark(hx, hy, 'block', dir); sfx('block');
+      return;
+    }
     const nearWall = (def.x <= STAGE_LEFT + 30 && dir < 0) || (def.x >= STAGE_RIGHT - 30 && dir > 0);
     const blocked = def.blocking && def.onGround && !def.attack && def.hitstun === 0;
     if (blocked) {
@@ -199,13 +213,15 @@ export class Match {
     def.vy = -9; def.vx = Math.sign(def.x - att.x || att.facing) * 4.5; def.onGround = false;
     this.phase = 'ko'; this.phaseT = 0; this.controls = false; this.slowmo = 26; this.roundWinner = att.side;
     this.perfectRound = att.hp >= att.d.maxHp; this.flashT = 8; this.shake(10); this.projectiles = [];
-    this.announce(this.perfectRound ? 'PERFECT' : 'K.O.', 'ko', 0); sfx('ko');
+    if (this.chapter && att.side === 0) this.announce('MASTERED', 'round', 0);
+    else this.announce(this.perfectRound ? 'PERFECT' : 'K.O.', 'ko', 0);
+    sfx('ko');
   }
 
   timeUp() {
     this.controls = false; this.phase = 'timeup'; this.phaseT = 0;
     const [a, b] = this.f, ra = a.hp / a.d.maxHp, rb = b.hp / b.d.maxHp;
-    this.roundWinner = Math.abs(ra - rb) < 1e-6 ? -1 : (ra > rb ? 0 : 1);
+    this.roundWinner = this.rule === 'stillness' ? 1 : Math.abs(ra - rb) < 1e-6 ? -1 : (ra > rb ? 0 : 1);
     this.announce('TIME', 'time', 0); sfx('gong');
   }
 
@@ -218,10 +234,25 @@ export class Match {
 
   endRound() {
     this.meters = [this.f[0].meter, this.f[1].meter];   // Shakti carries over between rounds
-    if (this.wins[0] >= ROUNDS_TO_WIN || this.wins[1] >= ROUNDS_TO_WIN) {
+    if (this.wins[0] >= this.roundsToWin || this.wins[1] >= this.roundsToWin) {
       this.winner = this.wins[0] === this.wins[1] ? -1 : (this.wins[0] > this.wins[1] ? 0 : 1);
-      go('results');
+      if (this.chapter) go('story', { result: this.winner === 0 ? 'win' : 'lose' });
+      else go('results');
     } else { this.round++; this.startRound(); }
+  }
+
+  // Chapter 9: calm grows while Nayan stands still near Shanta; attacking costs calm.
+  stillnessTick() {
+    const [h, s] = this.f;
+    const still = h.onGround && !h.attack && h.vx === 0 && !h.crouching && h.hitstun === 0 && Math.abs(h.x - s.x) < 320;
+    if (still) this.calm++;
+    if (h.attack && h.attack.f === 1) this.calm -= 60;
+    this.calm = clamp(this.calm, 0, CALM_MAX);
+    s.hp = s.trail = Math.round(s.d.maxHp * (1 - this.calm / CALM_MAX));
+    if (this.calm >= CALM_MAX) {
+      this.phase = 'calm'; this.phaseT = 0; this.controls = false; this.roundWinner = 0;
+      this.announce('शान्ति', 'peace', 0); sfx('gong');
+    }
   }
 
   trainingTick() {
@@ -269,6 +300,17 @@ export class Match {
     for (const p of this.projectiles) { c.strokeStyle = 'rgba(255,60,60,0.95)'; c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.stroke(); }
     c.restore();
   }
+}
+
+// Builds the fight for a story chapter: Nayan at the chapter's age against its emotion.
+export function newStoryMatch(ch) {
+  const hero = nayanAt(ch.age), emo = byId(ch.emotion);
+  return new Match({
+    mode: 'story', chapter: ch, rule: ch.rule, time: ch.time, roundsToWin: 1, cpuLevel: ch.cpu,
+    chars: [hero, emo],
+    pals: [{ rim: hero.colors.rim, accent: hero.colors.accent }, { rim: emo.colors.rim, accent: emo.colors.accent }],
+    stage: stageIndex(ch.stage),
+  });
 }
 
 export function newMatch() {

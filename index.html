@@ -93,8 +93,39 @@
     <div class="hint vs-hint"><span><kbd>Enter</kbd> skip</span></div>
   </section>
 
+  <!-- STORY MAP -->
+  <section id="scr-map" class="screen" aria-label="Story map">
+    <header class="map-head">
+      <div class="eyebrow">Story mode</div>
+      <h2>Nayan's life</h2>
+      <p>Nine emotions from the Natyashastra, met one at a time across a lifetime. Master each one to move on.</p>
+      <div class="chip" id="map-count">0 of 9 mastered</div>
+    </header>
+    <aside class="map-card" id="map-card">
+      <div class="eyebrow" id="mc-eyebrow"></div>
+      <div class="mc-dev" id="mc-dev" lang="hi"></div>
+      <h3 id="mc-name"></h3>
+      <p class="mc-tag" id="mc-tag"></p>
+      <ul class="mc-src" id="mc-src"></ul>
+      <div class="mc-status" id="mc-status"></div>
+    </aside>
+    <div id="map-nodes"></div>
+    <div class="hint map-hint"><span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> choose</span><span><kbd>Enter</kbd> begin</span><span><kbd>Esc</kbd> back</span></div>
+  </section>
+
+  <!-- STORY PANELS -->
+  <section id="scr-story" class="screen" aria-label="Story">
+    <div class="story-top"><span class="eyebrow" id="st-chapter"></span><span class="st-rasa" id="st-rasa" lang="hi"></span></div>
+    <div class="story-title" id="st-title"><div class="t-dev" id="t-dev" lang="hi"></div><div class="t-name" id="t-name"></div><div class="t-en" id="t-en"></div><p class="t-src" id="t-src"></p></div>
+    <blockquote class="story-quote" id="st-quote"><div class="q-orig" id="q-orig"></div><p id="q-text"></p><cite id="q-cite"></cite></blockquote>
+    <div class="story-stamp" id="st-stamp">Mastered<small id="st-stamp-sub"></small></div>
+    <div class="story-box" id="st-box"><div class="st-speaker" id="st-speaker"></div><p class="st-text" id="st-text"></p><p class="st-line" id="st-line"></p></div>
+    <div class="hint story-hint" id="st-hint"></div>
+  </section>
+
   <!-- 6. FIGHT HUD -->
   <section id="scr-fight" class="screen" aria-label="Fight">
+    <div class="hud-shade top"></div><div class="hud-shade bottom"></div>
     <div class="hud">
       <div class="hud-side s1">
         <div class="portrait"><canvas width="144" height="144"></canvas></div>

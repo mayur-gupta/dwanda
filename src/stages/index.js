@@ -1,12 +1,20 @@
-// Arena list. Each arena exports { id, name, sub, ground, paint(c), dyn?(c, t), fg?(c, t) }:
+// Arena list, in story order. Each arena exports { id, name, sub, ground, paint(c), dyn?(c, t), fg?(c, t) }:
 //   paint = static background (cached), dyn = animated layer behind fighters, fg = layer in front.
+import aangan from './aangan.js';
+import mela from './mela.js';
+import ramgiri from './ramgiri.js';
 import akhada from './akhada.js';
-import ghat from './ghat.js';
 import rooftop from './rooftop.js';
+import garden from './garden.js';
+import kurukshetra from './kurukshetra.js';
+import ghat from './ghat.js';
+import pond from './pond.js';
 import { S } from '../state.js';
 import { VIEW_W, VIEW_H } from '../config.js';
 
-export const STAGES = [akhada, ghat, rooftop];
+export const STAGES = [aangan, mela, ramgiri, akhada, rooftop, garden, kurukshetra, ghat, pond];
+
+export const stageIndex = (id) => Math.max(0, STAGES.findIndex((s) => s.id === id));
 
 const cache = new Map();
 export function stageCache(st) {

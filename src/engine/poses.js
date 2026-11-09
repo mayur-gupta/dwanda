@@ -46,6 +46,12 @@ export function walkPose(ph) {
   return mk(12, -6, [50 + s * 8, 100], [30 - s * 8, 112], [4 + s * 26, -12 - Math.max(0, c) * 34], [4 - s * 26, -12 - Math.max(0, -c) * 34]);
 }
 
+// Applies a character's stoop (e.g. an old man's bent back) to a pose.
+export function stoop(pose, ch) {
+  const d = ch && ch.body.stoop;
+  return d ? Object.assign({}, pose, { torso: pose.torso + d, head: pose.head - d * 0.6 }) : pose;
+}
+
 export function lerpPose(p, q, k) { for (const key in q) p[key] += (q[key] - p[key]) * k; }
 
 export const BONES = { torso: 60, neck: 7, head: 17, upperArm: 33, foreArm: 31, thigh: 44, shin: 44, foot: 15 };

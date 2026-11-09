@@ -1,5 +1,5 @@
 // Character select: roster grid, two preview panels, lock-in for each side.
-import { ROSTER_SIZE, CPU_LEVELS } from '../../config.js';
+import { ROSTER_SIZE, ROSTER_COLS, CPU_LEVELS } from '../../config.js';
 import { CHARACTERS, palFor } from '../../characters/index.js';
 import { G, S } from '../../state.js';
 import { $, $$, clamp, cap } from '../../engine/utils.js';
@@ -33,7 +33,7 @@ screens.select = {
     }
     this.panels = [0, 1].map((i) => this.buildPanel($('#pp' + i)));
     this.prev = [Object.assign({}, POSES.idle), Object.assign({}, POSES.idle)];
-    $('#roster-note').textContent = `Roster ${CHARACTERS.length} of ${ROSTER_SIZE} · open slots fill as fighters are added`;
+    $('#roster-note').textContent = CHARACTERS.length < ROSTER_SIZE ? `Roster ${CHARACTERS.length} of ${ROSTER_SIZE} · open slots fill as fighters are added` : 'Nayan and the nine rasas';
   },
 
   buildPanel(el) {
@@ -81,7 +81,7 @@ screens.select = {
   },
 
   moveCursor(side, act) {
-    const cols = 4, rows = Math.ceil(ROSTER_SIZE / cols);
+    const cols = ROSTER_COLS, rows = Math.ceil(ROSTER_SIZE / cols);
     let cx = this.cur[side] % cols, cy = Math.floor(this.cur[side] / cols);
     if (act === 'left') cx = (cx + cols - 1) % cols;
     else if (act === 'right') cx = (cx + 1) % cols;

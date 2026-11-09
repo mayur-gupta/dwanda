@@ -1,11 +1,21 @@
-// The roster. To add a fighter:
-//   1. Copy proto-a.js to a new file (e.g. arjun.js) and edit it.
+// The roster, in story order. To add a fighter:
+//   1. Copy one of these files (e.g. raudra.js) to a new file and edit it.
 //   2. Import it below and add it to the CHARACTERS array.
 // The select screen, previews, HUD, VS splash and results all read from this list.
-import protoA from './proto-a.js';
-import protoB from './proto-b.js';
+import nayan from './nayan.js';
+import bhayanaka from './bhayanaka.js';
+import hasya from './hasya.js';
+import adbhuta from './adbhuta.js';
+import raudra from './raudra.js';
+import bibhatsa from './bibhatsa.js';
+import shringara from './shringara.js';
+import veera from './veera.js';
+import karuna from './karuna.js';
+import shanta from './shanta.js';
 
-export const CHARACTERS = [protoA, protoB];
+export const CHARACTERS = [nayan, bhayanaka, hasya, adbhuta, raudra, bibhatsa, shringara, veera, karuna, shanta];
+
+export const byId = (id) => CHARACTERS.find((c) => c.id === id);
 
 // Colours for a side. Player 2 gets the alternate palette in a mirror match.
 export function palFor(side, picks) {

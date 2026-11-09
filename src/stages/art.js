@@ -104,3 +104,27 @@ export function skyline(c, by, minH, maxH, col, r, win, tanks) {
     x += w + 2 + r() * 6;
   }
 }
+
+// Broad-canopied tree (neem, kadamba) without hanging roots.
+export function tree(c, x, by, col, r, spread = 1) {
+  c.fillStyle = col; c.strokeStyle = col; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x - 22, by);
+  c.bezierCurveTo(x - 10, by - 80, x - 18, by - 150, x - 30, by - 200); c.lineTo(x + 22, by - 205);
+  c.bezierCurveTo(x + 14, by - 140, x + 10, by - 70, x + 26, by); c.closePath(); c.fill();
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI / 2 + (r() - 0.5) * 2.2;
+    c.lineWidth = 6 + r() * 6; c.beginPath(); c.moveTo(x, by - 180); c.lineTo(x + Math.cos(a) * 140 * spread, by - 190 + Math.sin(a) * 120); c.stroke();
+  }
+  for (let i = 0; i < 55; i++) {
+    const a = r() * TAU, d = Math.sqrt(r());
+    c.beginPath(); c.arc(x + Math.cos(a) * d * 190 * spread, by - 280 + Math.sin(a) * d * 90, 22 + r() * 38, 0, TAU); c.fill();
+  }
+}
+
+// Soft daytime cloud.
+export function puff(c, x, y, s, col) {
+  c.fillStyle = col;
+  for (const [dx, dy, rr] of [[-50, 8, 30], [-20, -10, 38], [18, -16, 44], [52, 4, 32], [0, 14, 34]]) {
+    c.beginPath(); c.arc(x + dx * s, y + dy * s, rr * s, 0, TAU); c.fill();
+  }
+}

@@ -1,7 +1,7 @@
 // One fighter: state machine, physics, attacks and pose animation.
 import { GRAVITY } from '../config.js';
 import { derive } from '../characters/defaults.js';
-import { POSES, movePoses, idlePose, walkPose, lerpPose, solvePose } from './poses.js';
+import { POSES, movePoses, idlePose, walkPose, lerpPose, solvePose, stoop } from './poses.js';
 import { sfx } from './audio.js';
 import { FX } from './fx.js';
 
@@ -17,7 +17,7 @@ export class Fighter {
     this.buf = { punch: 0, kick: 0, special: 0 };   // input buffer (ticks left)
     this.t = side * 37;
     this.pose = Object.assign({}, POSES.idle);
-    this.pt = solvePose(this.pose, this.facing);
+    this.pt = solvePose(stoop(this.pose, ch), this.facing);
   }
 
   get scale() { return this.ch.body.scale; }
@@ -137,6 +137,6 @@ export class Fighter {
     } else { target = this.basePose(); k = this.blockstun ? 0.6 : 0.3; }
     if (this.walking) this.walkPh += 0.21 * this.walking * (this.d.walk / 4);
     lerpPose(this.pose, target, k);
-    this.pt = solvePose(this.pose, this.facing);
+    this.pt = solvePose(stoop(this.pose, this.ch), this.facing);
   }
 }

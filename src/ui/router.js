@@ -5,7 +5,7 @@ import { G, S } from '../state.js';
 
 export const screens = {};
 
-const NO_CORNER = ['select', 'vs', 'fight', 'pause'];
+const NO_CORNER = ['select', 'vs', 'fight', 'pause', 'map', 'story'];
 
 export function go(name, arg) {
   const prev = S.current;

@@ -12,9 +12,9 @@ screens.stage = {
     this.cards = STAGES.map((st, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'card';
-      b.innerHTML = `<canvas width="640" height="360"></canvas><span class="card-name">${st.name}</span><span class="card-sub">${st.sub}</span>`;
+      b.innerHTML = `<canvas width="256" height="144"></canvas><span class="card-name">${st.name}</span><span class="card-sub">${st.sub}</span>`;
       const x = $('canvas', b).getContext('2d');
-      x.scale(0.5, 0.5); st.paint(x);
+      x.scale(0.2, 0.2); st.paint(x);
       if (st.dyn) st.dyn(x, 200);
       if (st.fg) st.fg(x, 200);
       b.addEventListener('click', () => { b.blur(); if (this.i === i) this.pick(); else this.focus(i); });

@@ -24,6 +24,9 @@ import './ui/screens/vs.js';
 import './ui/screens/fight.js';
 import './ui/screens/pause.js';
 import './ui/screens/results.js';
+import './ui/screens/map.js';
+import './ui/screens/story.js';
+import { progress } from './story/progress.js';
 
 const stageEl = $('#stage');
 const canvas = $('#game');
@@ -106,4 +109,4 @@ go('title');
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // Debug handle in development builds (npm run dev): window.dwandva.G, .S, .go('fight'), ...
-if (import.meta.env.DEV) window.dwandva = { G, S, go, startSelect, newMatch };
+if (import.meta.env.DEV) window.dwandva = { G, S, go, startSelect, newMatch, progress };

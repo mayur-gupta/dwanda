@@ -3,8 +3,9 @@ import { CPU_LEVELS } from '../config.js';
 import { blankInput } from './input.js';
 
 export class CPU {
-  constructor(level) {
-    this.L = CPU_LEVELS[level];
+  constructor(level, opts = {}) {
+    this.L = CPU_LEVELS[level] || CPU_LEVELS[1];
+    this.passive = !!opts.passive;   // never attacks; just comes close and waits (chapter 9)
     this.hold = { fwd: false, back: false, down: false, up: false };
     this.timer = 20;
     this.press = null;
@@ -12,6 +13,7 @@ export class CPU {
 
   input(me, opp, M) {
     const out = blankInput(), dx = opp.x - me.x, dist = Math.abs(dx);
+    if (this.passive) { if (dist > 240) out[dx >= 0 ? 'right' : 'left'] = true; return out; }
     if (--this.timer <= 0) this.decide(me, opp, M, dist);
     if (!me.onGround && !me.attack && !me.airUsed && dist < 150 && me.vy > -4 && Math.random() < 0.2) this.press = 'kick';
     const fwdKey = dx >= 0 ? 'right' : 'left', backKey = dx >= 0 ? 'left' : 'right';
